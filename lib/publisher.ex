@@ -106,7 +106,8 @@ defmodule GenRMQ.Publisher do
   """
   @spec start_link(module :: module(), options :: Keyword.t()) :: {:ok, pid} | {:error, term}
   def start_link(module, options \\ []) do
-    GenServer.start_link(__MODULE__, %{module: module}, options)
+    config = apply(module, :init, [])
+    GenServer.start_link(__MODULE__, %{module: module, config: config}, options)
   end
 
   @doc """
@@ -211,10 +212,8 @@ defmodule GenRMQ.Publisher do
 
   @doc false
   @impl GenServer
-  def init(%{module: module} = initial_state) do
+  def init(state) do
     Process.flag(:trap_exit, true)
-    config = apply(module, :init, [])
-    state = Map.merge(initial_state, %{config: config})
 
     {:ok, state, {:continue, :init}}
   end
